@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>On Pyro - Deep Probabilistic Programming on PyTorch | Dustin Tran</title>
+	<meta name="description" content="Pyro, a “deep universal probabilistic programming language” onPyTorch, was announced today (see blog post; homepage).People were curious of my thoughts. I sh...">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/on-pyro-deep-probabilistic-programming-on-pytorch">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">On Pyro - Deep Probabilistic Programming on PyTorch</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="http://dustintran.com">Dustin Tran</a>
+        
+      </span>
+      <span class="date">Nov 3, 2017</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p>Pyro, a “deep universal probabilistic programming language” on
+PyTorch, was announced today (see <a href="https://eng.uber.com/pyro/">blog post</a>; <a href="http://pyro.ai">homepage</a>).
+People were curious of my thoughts. I shared a short note on
+<a href="https://www.reddit.com/r/MachineLearning/comments/7ak6x9/n_uber_ai_labs_open_sources_pyro_a_deep/">reddit</a>,
+copied and pasted below:</p>
+
+<blockquote>
+  <p>This is great work coming from the Uber AI labs, especially by Eli Bingham and Noah Goodman for leading this effort among an excellent group. I’ve met with them in-person on numerous occasions to discuss the overall design and implementation details. Pyro touches on interesting aspects in PPL research: dynamic computational graphs, deep generative models, and programmable inference.</p>
+
+  <p>It’s yet to see where Pyro will come to fruition. Personally, inheriting from my advisors David Blei and Andrew Gelman, I like to think from a bottom-up view where applications ground design principles; and they end up determining the direction and success of a PPL. For Stan, it’s hierarchical GLMs fueled with HMC across a variety of social and political sciences. For Edward, it’s deep latent variable models fueled with black box VI across text, images, and spatial data. I’d like to see where Pyro not only makes dynamic probabilistic programming easier, but (1) what applications it enables that was not possible before; and (2) what new PPL innovations come out. Attend, Infer, Repeat (<a href="https://github.com/uber/pyro/blob/dev/tutorial/source/air.ipynb">Pyro notebook</a>) is a great example in this direction.</p>
+
+  <p>On speed: Pyro might be faster than Edward on CPUs depending on the intensity of graph-building in PyTorch vs TensorFlow. I’m confident Edward will dominate on GPUs (certainly TPUs) when data or model parallelism is the bottleneck. It warrants benchmarks, including Pyro vs native PyTorch. Edward benefits from speed being just as fast as native TF because the underlying computational graph is the same. Dynamic PPLs trade off that benefit.</p>
+</blockquote>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>

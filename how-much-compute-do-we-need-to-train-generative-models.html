@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>How much compute do we need to train generative models? | Dustin Tran</title>
+	<meta name="description" content="Update (09/01/17): The post is written to be somewhat silly and numbers are not meant to be accurate. For example, there is a simplifying assumption that tra...">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/how-much-compute-do-we-need-to-train-generative-models">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">How much compute do we need to train generative models?</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="http://dustintran.com">Dustin Tran</a>
+        
+      </span>
+      <span class="date">Aug 31, 2017</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p><em>Update (09/01/17): The post is written to be somewhat silly and numbers are not meant to be accurate. For example, there is a simplifying assumption that training time scales linearly with the # of bits to encode the output; and 5000 is chosen arbitrarily given only that the output’s range has 65K*3 dimensions and each takes one of 256 integers.</em></p>
+
+<p>Discriminative models can take weeks to train. It was only until a
+breakthrough two months ago by Facebook <a class="citation" href="#goyal2017accurate">(Goyal et al., 2017)</a> that we could successfully train a neural net
+exceeding human accuracy (ResNet-50) on ImageNet in one hour. And this
+was with 256 GPUs and a monstrous batch size of 8192.
+<!-- Unfortunately, most of us mortals have maybe 8 GPUs at most—or for the -->
+<!-- very fortunate, at most 8 GPUs per experiment—and do not have help     -->
+<!-- from the first authors of ResNets and Caffe. This means in 2017, each    -->
+<!-- ImageNet classifier can still take days to a week.                       --></p>
+
+<p>Contrast this with generative models.  We’ve made progress in
+stability and sample diversity with generative adversarial networks,
+where, say, Wasserstein GANs with gradient penalty
+<a class="citation" href="#gulrajani2017improved">(Gulrajani, Ahmed, Arjovsky, Dumoulin, &amp; Courville, 2017)</a> and
+Cramer GANs
+<a class="citation" href="#bellemare2017cramer">(Bellemare et al., 2017)</a>
+can get good results for generating LSUN bedrooms.
+But in communication with
+Ishaan Gulrajani, this took 3 days to train with 4 GPUs and 900,000
+total iterations; moreover, LSUN
+has a resolution of 64x64 and is
+significantly less diverse than the 256x256 sized ImageNet.
+<!-- : this is especially the case as we do 5 discriminator                -->
+<!-- updates per generator update, which is already a 5x slowdown compared -->
+<!-- to vanilla GANs per-generator iteration.                              -->
+Let’s also not kid ourselves
+that we perfected density estimation to learn the true distribution of
+LSUN bedrooms yet.</p>
+
+<p>Generative models for text are no different. The best results so far for the 1 billion
+language modeling benchmark are an LSTM with 151 million parameters
+(excluding embedding and softmax layers)
+which took 3 weeks to train with 32 GPUs
+<a class="citation" href="#jozefowicz2016exploring">(Jozefowicz, Vinyals, Schuster, Shazeer, &amp; Wu, 2016)</a>
+and a mixture of experts LSTM with 4.3 billion parameters
+<a class="citation" href="#shazeer2017outrageously">(Shazeer et al., 2017)</a>.
+<!-- downsampled ImageNet. --></p>
+
+<p>This begs the question: how much compute <em>should</em> we expect in order
+to learn a generative model?</p>
+
+<p>Suppose we restrict ourselves to 256x256 ImageNet as a proxy for
+natural images.
+A simple property in information theory says that the the entropy of
+the conditional
+<script type="math/tex">p(\text{class label}\mid \text{natural image})</script>
+is upper bounded by at most <script type="math/tex">\log K</script> bits for <script type="math/tex">K</script> classes.
+Comparing this to the entropy of the unconditional
+<script type="math/tex">p(\text{natural image})</script>, whose
+number of bits is a function of <script type="math/tex">256\times 256=65,536</script>
+pixels each of which take 3 values from <script type="math/tex">[0, 255]</script>,
+then a very modest guess would be that <script type="math/tex">p(\text{natural image})</script> has
+5000 times more bits. We also need to
+account for the difference in training methods.  Let’s say that the
+method for generative models is only 6x slower than that of
+discriminative models (5 discriminative updates per generator update;
+we’ll forget the fact that GAN and MMD objectives are actually more expensive
+than maximum likelihood due to multiple forward and backward passes).</p>
+
+<p>Finally, let’s take Facebook’s result as a baseline for learning
+<script type="math/tex">p(\text{class label}\mid \text{natural image})</script> in 1 hour with 256 GPUs
+and a batch size of 8192. <strong>Then the distribution <script type="math/tex">p(\text{natural image})</script>
+would require
+1 hour <script type="math/tex">\cdot</script> 5000 <script type="math/tex">\cdot</script> 6 <script type="math/tex">=</script> 30,000 hours <script type="math/tex">\approx</script> 3.4 years to train.</strong>
+And this is assuming we have the right objective, architecture, and
+hyperparameters to set it and forget it: until then, let’s hope for
+better hardware.</p>
+
+<p><em>This short post is extracted from a fun conversation with Alec Radford today.</em></p>
+
+<h2 id="references">References</h2>
+
+<ol class="bibliography"><li><span id="bellemare2017cramer">Bellemare, M. G., Danihelka, I., Dabney, W., Mohamed, S., Lakshminarayanan, B., Hoyer, S., &amp; Munos, R. (2017). The Cramer Distance as a Solution to Biased Wasserstein Gradients. <i>ArXiv Preprint ArXiv:1705.10743</i>.</span></li>
+<li><span id="goyal2017accurate">Goyal, P., Dollár, P., Girshick, R., Noordhuis, P., Wesolowski, L., Kyrola, A., … He, K. (2017). Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour. <i>ArXiv Preprint ArXiv:1706.02677</i>.</span></li>
+<li><span id="gulrajani2017improved">Gulrajani, I., Ahmed, F., Arjovsky, M., Dumoulin, V., &amp; Courville, A. (2017). Improved Training of Wasserstein GANs. <i>ArXiv Preprint ArXiv:1704.00028</i>.</span></li>
+<li><span id="jozefowicz2016exploring">Jozefowicz, R., Vinyals, O., Schuster, M., Shazeer, N., &amp; Wu, Y. (2016). Exploring the Limits of Language Modeling. <i>ArXiv Preprint ArXiv:1602.02410</i>.</span></li>
+<li><span id="shazeer2017outrageously">Shazeer, N., Mirhoseini, A., Maziarz, K., Davis, A., Le, Q., Hinton, G., &amp; Dean, J. (2017). Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer. In <i>International Conference on Learning Representations</i>.</span></li></ol>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>

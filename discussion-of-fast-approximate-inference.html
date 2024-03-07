@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>Discussion of "Fast Approximate Inference for Arbitrarily Large Semiparametric Regression Models via Message Passing" | Dustin Tran</title>
+	<meta name="description" content="This article is written with much help by David Blei. It is extracted from a discussion paper on “Fast Approximate Inference for Arbitrarily Large Semiparame...">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/discussion-of-fast-approximate-inference">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">Discussion of "Fast Approximate Inference for Arbitrarily Large Semiparametric Regression Models via Message Passing"</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="{{ site.url }}">Dustin Tran</a> and <a class="author-name" href="http://www.cs.columbia.edu/~blei/">David Blei</a>
+        
+      </span>
+      <span class="date">Sep 19, 2016</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p><em>This article is written with much help by David Blei. It is extracted from a discussion paper on “Fast Approximate Inference for Arbitrarily Large Semiparametric Regression Models via Message Passing”.</em> <a href="http://arxiv.org/abs/1609.05615">[link]</a></p>
+
+<p>We commend <a class="citation" href="#wand2016fast">Wand (2016)</a> for an excellent description of
+message passing (<span style="font-variant:small-caps;">mp</span>) and for developing it to infer large semiparametric
+regression models.  We agree with the author in fully embracing the
+modular nature of message passing, where one can define “fragments”
+that enable us to compose localized algorithms.  We believe this
+perspective can aid in the development of new algorithms for automated
+inference.</p>
+
+<p><strong>Automated inference.</strong>  The promise of automated algorithms is
+that modeling and inference can be separated. A user can construct
+large, complicated models in accordance with the assumptions he or she
+is willing to make about their data. Then the user can use generic
+inference algorithms as a computational backend in a “probabilistic
+programming language,” i.e., a language for specifying generative
+probability models.</p>
+
+<p>With probabilistic programming, the user no longer has to write their
+own algorithms, which may require tedious model-specific derivations
+and implementations. In the same spirit, the user no longer has to
+bottleneck their modeling choices in order to fit the requirements of
+an existing model-specific algorithm.  Automated inference enables
+probabilistic programming systems, such as
+Stan <a class="citation" href="#carpenter2016stan">(Carpenter et al., 2016)</a>, through methods like
+automatic differentiation variational inference (<span style="font-variant:small-caps;">advi</span>) <a class="citation" href="#kucukelbir2016automatic">(Kucukelbir, Tran, Ranganath, Gelman, &amp; Blei, 2016)</a> and
+no U-turn sampler (<span style="font-variant:small-caps;">nuts</span>) <a class="citation" href="#hoffman2014nuts">(Hoffman &amp; Gelman, 2014)</a>.</p>
+
+<p>Though they aim to apply to a large class of models, automated
+inference algorithms typically need to incorporate modeling structure
+in order to remain practical. For example, Stan assumes that one can
+at least take gradients of a model’s joint density. (Contrast this
+with other languages which assume one can only sample from the model.)
+However, more structure is often necessary: <span style="font-variant:small-caps;">advi</span> and <span style="font-variant:small-caps;">nuts</span>
+are not fast enough by themselves to infer very large models, such as
+hierarchical models with many groups.</p>
+
+<p>We believe <span style="font-variant:small-caps;">mp</span> and Wand’s work could offer fruitful avenues for
+expanding the frontiers of automated inference. From our perspective,
+a core principle underlying <span style="font-variant:small-caps;">mp</span> is to leverage structure when it
+is available—in particular, statistical properties in the model—which provides useful computational properties.  In <span style="font-variant:small-caps;">mp</span>, two
+examples are conditional independence and conditional conjugacy.</p>
+
+<p><strong>From conditional independence to distributed computation.</strong>
+As <a class="citation" href="#wand2016fast">Wand (2016)</a> indicates, a crucial advantage of message
+passing is that it modularizes inference; the computation can be
+performed separately over conditionally independent posterior
+factors. By definition, conditional independence separates a posterior
+factor from the rest of the model, which enables <span style="font-variant:small-caps;">mp</span> to define a
+series of iterative updates. These updates can be run asynchronously
+and in a distributed environment.</p>
+
+<center>
+<img src="/blog/assets/2016-09-19-figure.png" style="width:200px;" />
+</center>
+<p><em>Figure 1.
+A hierarchical model, with latent variables <script type="math/tex">\alpha_k</script> defined locally
+per group and latent variables <script type="math/tex">\phi</script> defined globally to be shared across groups.</em></p>
+
+<p>We are motivated by hierarchical models, which substantially benefit
+from this property. Formally, let <script type="math/tex">y_{nk}</script> be the <script type="math/tex">n^{th}</script> data
+point in group <script type="math/tex">k</script>, with a total of <script type="math/tex">N_k</script> data points in group <script type="math/tex">k</script> and
+<script type="math/tex">K</script> many groups. We model the data using local latent variables
+<script type="math/tex">\alpha_k</script> associated to a group <script type="math/tex">k</script>, and using global latent
+variables <script type="math/tex">\phi</script> which are shared across groups. The model is depicted
+in Figure 1.</p>
+
+<p>The posterior distribution of local variables <script type="math/tex">\alpha_k</script> and global
+variables <script type="math/tex">\phi</script> is</p>
+
+<script type="math/tex; mode=display">p(\alpha,\phi\mid\mathbf{y}) \propto
+p(\phi\mid\mathbf{y}) \prod_{k=1}^K
+\Big[ p(\alpha_k\mid \beta) \prod_{n=1}^{N_K} p(y_{nk}\mid\alpha_k,\phi) \Big].</script>
+
+<p>The benefit of distributed updates over the independent factors is
+immediate. For example, suppose the data consists of 1,000 data points
+per group (with 5,000 groups); we model it with 2 latent variables per
+group and 20 global latent variables.  Passing messages, or
+inferential updates, in parallel provides an attractive approach to
+handling all 10,020 latent dimensions. (In contrast, consider a
+sequential algorithm that requires taking 10,019 steps for all other
+variables before repeating an update of the first.)</p>
+
+<p>While this approach to leveraging conditional independence is
+straightforward from the message passing perspective, it is not
+necessarily immediate from other perspectives.  For example, the
+statistics literature has only recently come to similar ideas,
+motivated by scaling up Markov chain Monte Carlo using divide and
+conquer strategies <a class="citation" href="#huang2005sampling">(Huang &amp; Gelman, 2005; Wang &amp; Dunson, 2013)</a>.
+These first analyze data locally over a partition of the joint
+density, and second aggregate the local inferences.  In our work in
+<a class="citation" href="#gelman2014expectation">Gelman et al. (2014)</a>, we arrive at the continuation of this
+idea. Like message passing, the process is iterated, so that local
+information propagates to global information and global information
+propagates to local information. In doing so, we obtain a scalable
+approach to Monte Carlo inference, both from a top-down view which
+deals with fitting statistical models to large data sets and from a
+bottom-up view which deals with combining information across local
+sources of data and models.</p>
+
+<p><strong>From conditional conjugacy to exact iterative updates.</strong>
+Another important element of message passing algorithms is conditional
+conjugacy, which lets us easily calculate the exact distribution for a
+posterior factor conditional on other latent variables. This enables
+analytically tractable messages (c.f., Equations (7)-(8) of
+<a class="citation" href="#wand2016fast">Wand (2016)</a>).</p>
+
+<p>Consider the same hierarchical model discussed above, and set</p>
+
+<script type="math/tex; mode=display">p(y_k,\alpha_k\mid \phi)
+= h(y_k, \alpha_k) \exp\{\phi^\top t(y_k, \alpha_k) - a(\phi)\},</script>
+
+<script type="math/tex; mode=display">p(\phi)
+= h(\phi) \exp\{\eta^{(0) \top} t(\phi) - a(\eta_0)\}
+.</script>
+
+<p>The local factor <script type="math/tex">p(y_k,\alpha_k\mid\phi)</script> has sufficient statistics
+<script type="math/tex">t(y_k,\alpha_k)</script> and natural parameters given by the global latent
+variable <script type="math/tex">\phi</script>.  The global factor <script type="math/tex">p(\phi)</script> has sufficient
+statistics <script type="math/tex">t(\phi) = (\phi, -a(\phi))</script>, and with fixed
+hyperparameters <script type="math/tex">\eta^{(0)}</script>, which has two components: <script type="math/tex">\eta^{(0)} =
+(\eta^{(0)}_1,\eta^{(0)}_2)</script>.</p>
+
+<p>This exponential family structure implies that, conditionally, the
+posterior factors are also in the same exponential families
+as the prior factors <a class="citation" href="#diaconis1979conjugate">(Diaconis &amp; Ylvisaker, 1979)</a>,</p>
+
+<script type="math/tex; mode=display">p(\phi\mid\mathbf{y},\alpha)
+= h(\phi) \exp\{\eta(\mathbf{y},\alpha)^\top t(\phi) - a(\mathbf{y},\alpha)\},</script>
+
+<script type="math/tex; mode=display">p(\alpha_k\mid y_k, \phi)
+= h(\alpha_k) \exp\{\eta(y_k, \phi)^\top t(\alpha_k) - a(y_k, \phi)\}
+.</script>
+
+<p>The global factor’s natural parameter is <script type="math/tex">\eta(\mathbf{y},\alpha) =
+(\eta^{(0)}_1 + \sum_{k=1}^K t(y_k, \alpha_k), \eta^{(0)}_2 + \sum_{k=1}^K N_k)</script>.</p>
+
+<p>With this statistical property at play—namely that conjugacy gives
+rise to tractable conditional posterior factors—we can derive
+algorithms at a conditional level with exact iterative updates.  This
+is assumed for most of the message passing of semiparametric models in
+<a class="citation" href="#wand2016fast">Wand (2016)</a>.  Importantly, this is not necessarily a
+limitation of the algorithm. It is a testament to leveraging model
+structure: without access to tractable conditional posteriors,
+additional approximations must be made.  <a class="citation" href="#wand2016fast">Wand (2016)</a> provides
+an elegant way to separate out these nonconjugate pieces from the
+conjugate pieces.</p>
+
+<p>In statistics, the most well-known example which leverages
+conditionally conjugate factors is the Gibbs sampling algorithm.  From
+our own work, we apply the idea in order to access fast natural
+gradients in variational inference, which accounts for the information
+geometry of the parameter space <a class="citation" href="#hoffman2013stochastic">(Hoffman, Blei, Wang, &amp; Paisley, 2013)</a>.  In
+other work, we demonstrate a collection of methods for gradient-based
+marginal optimization <a class="citation" href="#tran2016gradient">(Tran, Gelman, &amp; Vehtari, 2016)</a>.  Assuming forms of
+conjugacy in the model class arrives at the classic idea of
+iteratively reweighted least squares as well as the EM algorithm. Such
+structure in the model provides efficient algorithms—both
+statistically and computationally—for their automated inference.</p>
+
+<p><strong>Open Challenges and Future Directions.</strong> Message passing is a
+classic algorithm in the computer science literature, which is ripe
+with interesting ideas for statistical inference. In particular,
+<span style="font-variant:small-caps;">mp</span> enables new advancements in the realm of automated inference,
+where one can take advantage of statistical structure in the model.
+<a class="citation" href="#wand2016fast">Wand (2016)</a> makes great steps following this direction.</p>
+
+<p>With that said, important open challenges still exist in order to
+realize this fusion.</p>
+
+<p>First is about the design and implementation of probabilistic
+programming languages. In order to implement <a class="citation" href="#wand2016fast">Wand (2016)</a>’s
+message passing, the language must provide ways of identifying local
+structure in a probabilistic program.  While that is enough to let
+practitioners use <span style="font-variant:small-caps;">mp</span>, a much larger challenge is to
+then automate the process of detecting local structure.</p>
+
+<p>Second is about the design and implementation of inference engines.
+The inference must be extensible, so that users can not only employ
+the algorithm in <a class="citation" href="#wand2016fast">Wand (2016)</a> but easily build on top of it.
+Further, its infrastructure must be able to encompass a variety of
+algorithms, so that users can incorporate <span style="font-variant:small-caps;">mp</span> as one of many
+tools in their toolbox.</p>
+
+<p>Third, we think there are innovations to be made on taking the stance
+of modularity to a further extreme. In principle, one can compose not
+only localized message passing updates but compose localized inference
+algorithms of any choice—whether it be exact inference, Monte Carlo,
+or variational methods.  This modularity will enable new
+experimentation with inference hybrids and can bridge the gap among
+inference methods.</p>
+
+<p>Finally, while we discuss <span style="font-variant:small-caps;">mp</span> in the context of automation,
+fully automatic algorithms are not possible. Associated to all
+inference are statistical and computational
+tradeoffs <a class="citation" href="#jordan2013statistics">(Jordan, 2013)</a>.  Thus we need algorithms along
+the frontier, where a user can explicitly define a computational
+budget and employ an algorithm achieving the best statistical
+properties within that budget; or conversely, define desired
+statistical properties and employ the fastest algorithm to achieve
+them.  We think ideas in <span style="font-variant:small-caps;">mp</span> will also help in developing some of
+these algorithms.</p>
+
+<h2 id="references">References</h2>
+
+<ol class="bibliography"><li><span id="carpenter2016stan">Carpenter, B., Gelman, A., Hoffman, M. D., Lee, D., Goodrich, B., Betancourt, M., … Riddell, A. (2016). Stan: A probabilistic programming language. <i>Journal of Statistical Software</i>.</span></li>
+<li><span id="diaconis1979conjugate">Diaconis, P., &amp; Ylvisaker, D. (1979). Conjugate Priors for Exponential Families. <i>The Annals of Statistics</i>, <i>7</i>(2), 269–281.</span></li>
+<li><span id="gelman2014expectation">Gelman, A., Vehtari, A., Jylänki, P., Robert, C., Chopin, N., &amp; Cunningham, J. P. (2014). Expectation propagation as a way of life. <i>ArXiv Preprint ArXiv:1412.4869</i>.</span></li>
+<li><span id="hoffman2013stochastic">Hoffman, M. D., Blei, D. M., Wang, C., &amp; Paisley, J. (2013). Stochastic Variational Inference. <i>Journal of Machine Learning Research</i>, <i>14</i>, 1303–1347.</span></li>
+<li><span id="hoffman2014nuts">Hoffman, M. D., &amp; Gelman, A. (2014). The no-U-turn sampler: adaptively setting path lengths in Hamiltonian Monte Carlo. <i>Journal of Machine Learning Research</i>, <i>15</i>, 1593–1623.</span></li>
+<li><span id="huang2005sampling">Huang, Z., &amp; Gelman, A. (2005). Sampling for Bayesian Computation with Large Datasets. <i>SSRN Electronic Journal</i>.</span></li>
+<li><span id="jordan2013statistics">Jordan, M. I. (2013). On statistics, computation and scalability. <i>Bernoulli</i>, <i>19</i>(4), 1378–1390.</span></li>
+<li><span id="kucukelbir2016automatic">Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., &amp; Blei, D. M. (2016). Automatic Differentiation Variational Inference. <i>ArXiv Preprint ArXiv:1603.00788</i>.</span></li>
+<li><span id="tran2016gradient">Tran, D., Gelman, A., &amp; Vehtari, A. (2016). Gradient-based marginal optimization. <i>Technical Report</i>.</span></li>
+<li><span id="wand2016fast">Wand, M. P. (2016). Fast Approximate Inference for Arbitrarily Large Semiparametric Regression Models via Message Passing. <i>ArXiv Preprint ArXiv:1602.07412</i>.</span></li>
+<li><span id="wang2013parallelizing">Wang, X., &amp; Dunson, D. B. (2013). Parallelizing MCMC via Weierstrass sampler. <i>ArXiv Preprint ArXiv:1312.4605</i>.</span></li></ol>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>

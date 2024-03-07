@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>On Model Mismatch and Bayesian Analysis | Dustin Tran</title>
+	<meta name="description" content="One aspect I always enjoy about machine learning is that questionsoften go back to the basics. The field essentially goes into anexistential crisis every doz...">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/on-model-mismatch-and-bayesian-analysis">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">On Model Mismatch and Bayesian Analysis</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="http://dustintran.com">Dustin Tran</a>
+        
+      </span>
+      <span class="date">Dec 13, 2016</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p>One aspect I always enjoy about machine learning is that questions
+often go back to the basics. The field essentially goes into an
+existential crisis every dozen years—rethinking our tools and asking foundational questions
+such as “why neural networks” or “why generative models”.<sup>1</sup></p>
+
+<p>This was a theme in my conversations during
+<a href="https://nips.cc/Conferences/2016">NIPS 2016</a> last week, where a
+frequent topic was
+on the advantages of a Bayesian perspective to machine learning.
+Not surprisingly, this appeared as a big discussion point during the
+panel at the <a href="http://bayesiandeeplearning.org">Bayesian deep learning
+workshop</a>, where many
+panelists were conciliatory to the use of non-Bayesian approaches.
+(Granted, much of it was Neil trolling them to admit when non-Bayesian
+approaches worked better in practice.)</p>
+
+<p>One argument against Bayesian analysis went as follows:</p>
+
+<blockquote>
+  <p>While Bayesian inference can capture uncertainty about parameters,
+it relies on the model being correctly specified. However, in
+practice, all models are wrong. And in fact, this model mismatch can
+be often be large enough that we should be more concerned with
+calibrating our inferences to correct for the mismatch than to
+produce uncertainty estimates from incorrect assumptions.</p>
+</blockquote>
+
+<p>A related complaint was on the separation of model and
+inference, a philosophical point commonly associated with Bayesians:</p>
+
+<blockquote>
+  <p>While in principle it is nice that we can build models separate from
+our choice of inference, we often need to combine the two in practice. (The whole
+naming behind the popular model-inference classes of “variational
+auto-encoders” <a class="citation" href="#kingma2014autoencoding">(Kingma &amp; Welling, 2014)</a>
+and “generative adversarial networks” <a class="citation" href="#goodfellow2014generative">(Goodfellow et al., 2014)</a> are one
+example.) That is, we often choose our model based on what we know
+enables fast inferences, or we select hyperparameters in our model
+from data. This goes against the Bayesian paradigm.</p>
+</blockquote>
+
+<p>First, I’d like to say immediately that I think interpreting Bayesian
+analysis as a two-step procedure of setting up a probability model,
+then performing posterior inference is outdated. Certainly this was the
+prevailing perspective back in the 80s’ and 90s’ when Markov chain Monte Carlo
+was first popularized, and when statisticians started to take Bayesian analysis
+more seriously <a class="citation" href="#robert2011short">(Robert &amp; Casella, 2011)</a>.</p>
+
+<p>Quoting <a class="citation" href="#gelman2012philosophy">Gelman &amp; Shalizi (2012)</a>
+who summarize this perspective,
+“The expression <script type="math/tex">p(\theta\mid y)</script> says it all, and the central goal of Bayesian inference is computing the posterior probabilities of hypotheses. Anything not contained in the posterior distribution <script type="math/tex">p(\theta\mid y)</script> is simply irrelevant, and it would be irrational (or incoherent) to attempt falsification, unless that somehow shows up in the posterior.”</p>
+
+<p><strong>Like many statisticians before me</strong>
+(e.g., <a class="citation" href="#box1980sampling">Box (1980)</a>,
+<a class="citation" href="#good1983good">Good (1983)</a>,
+<a class="citation" href="#rubin1984bayesianly">Rubin (1984)</a>,
+<a class="citation" href="#jaynes2003probability">Jaynes (2003)</a>),
+<strong>I believe this perspective is wrong. Bayesian analysis is no
+different in its testing and falsification of models than any other
+inferential paradigm</strong>
+(<a class="citation" href="#fisher1925statistical">Fisher (1925)</a>,
+<a class="citation" href="#neyman1933on">Neyman &amp; Pearson (1933)</a>).</p>
+
+<p>An important third step to all empirical analyses is <em>model criticism</em>
+(<a class="citation" href="#box1980sampling">Box (1980)</a>,
+<a class="citation" href="#ohagan2011hsss">O’Hagan (2001)</a>
+),
+also known as model
+validation, or model
+checking and diagnostics
+(<a class="citation" href="#rubin1984bayesianly">Rubin (1984)</a>,
+<a class="citation" href="#meng1994posterior">Meng (1994)</a>,
+<a class="citation" href="#gelman1996posterior">Gelman, Meng, &amp; Stern (1996)</a>).
+In criticizing our models after inference, we can either justify
+use of the model or find directions in which we can revise the model.
+By revising the model, we go back to the modeling step, thus forming
+a loop, called <em>Box’s loop</em>
+(<a class="citation" href="#box1976science">Box (1976)</a>,
+<a class="citation" href="#blei2014build">Blei (2014)</a>,
+<a class="citation" href="#gelman2013bayesian">Gelman et al. (2013)</a>).
+<sup>2</sup></p>
+
+<p>From my perspective, this solves the perceived problem of conflating
+model and inference, whether it be to address model mismatch or to
+build the model from previous inferences or data.
+That is, while
+posterior inference is simply a mechanical step of calculating a
+conditional distribution, the
+step of model criticism is about the relevance of the model to future
+data—to put it in statistical terms, the relevance of the model with
+respect to a population distribution
+<a class="citation" href="#wasserman2006frequentist">(Wasserman, 2006)</a>.
+As with data, the model is
+just a source of information, and posterior inference simply aggregates these
+two sources of information. Thus it
+makes sense that as we better understand properties of the data, we
+can revise our information to better formulate a model of it
+<a class="citation" href="#tukey1977exploratory">(Tukey, 1977)</a>.</p>
+
+<p>This might sound like an awkward way to shoehorn Bayesian analysis to
+mimick frequentist properties, or no different from combining model
+and inference from the get-go.
+However, this loop is fundamental because it still emphasizes the
+importance of separating the two.  We can continue to form
+hypothetico-deductive analyses—namely, a falsificationist view of
+the world where components of model, inference, and criticism
+interact—while still incorporating posterior probabilities.</p>
+
+<p>For more details, I highly recommend
+<a class="citation" href="#gelman2012philosophy">Gelman &amp; Shalizi (2012)</a>
+and of course the classic,
+<a class="citation" href="#rubin1984bayesianly">Rubin (1984)</a>.</p>
+
+<p><sup>1</sup>
+I take an optimistic viewpoint to the trend of cycling among tools for
+machine learning. The trend is based on what works best empirically,
+and I think that’s important.</p>
+
+<p><sup>2</sup>
+As a plug, I should also mention that this is what <a href="http://edwardlib.org">Edward</a> is all about.</p>
+
+<h2 id="references">References</h2>
+
+<ol class="bibliography"><li><span id="blei2014build">Blei, D. M. (2014). Build, compute, critique, repeat: Data analysis with latent variable models. <i>Annual Review of Statistics and Its Application</i>.</span></li>
+<li><span id="box1980sampling">Box, G. E. P. (1980). Sampling and Bayes’ inference in scientific modelling and robustness. <i>Journal of the Royal Statistical Society. Series A. General</i>, <i>143</i>(4), 383–430.</span></li>
+<li><span id="box1976science">Box, G. E. P. (1976). Science and statistics. <i>Journal of the American Statistical Association</i>, <i>71</i>(356), 791–799.</span></li>
+<li><span id="fisher1925statistical">Fisher, R. A. (1925). <i>Statistical Methods for Research Workers</i>. Genesis Publishing Pvt Ltd.</span></li>
+<li><span id="gelman2013bayesian">Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., &amp; Rubin, D. B. (2013). <i>Bayesian data analysis</i> (Third). CRC Press, Boca Raton, FL.</span></li>
+<li><span id="gelman1996posterior">Gelman, A., Meng, X.-L., &amp; Stern, H. (1996). Posterior predictive assessment of model fitness via realized discrepancies. <i>Statistica Sinica</i>.</span></li>
+<li><span id="gelman2012philosophy">Gelman, A., &amp; Shalizi, C. R. (2012). Philosophy and the practice of Bayesian statistics. <i>British Journal of Mathematical and Statistical Psychology</i>, <i>66</i>(1), 8–38.</span></li>
+<li><span id="good1983good">Good, I. J. (1983). <i>Good thinking: The foundations of probability and its applications</i>. U of Minnesota Press.</span></li>
+<li><span id="goodfellow2014generative">Goodfellow, I., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., … Bengio, Y. (2014). Generative Adversarial Nets. In <i>Neural Information Processing Systems</i>.</span></li>
+<li><span id="jaynes2003probability">Jaynes, E. T. (2003). Probability theory: The logic of science. Washington University St. Louis, MO.</span></li>
+<li><span id="kingma2014autoencoding">Kingma, D. P., &amp; Welling, M. (2014). Auto-Encoding Variational Bayes. In <i>International Conference on Learning Representations</i>.</span></li>
+<li><span id="meng1994posterior">Meng, X.-L. (1994). Posterior predictive p-values. <i>The Annals of Statistics</i>.</span></li>
+<li><span id="neyman1933on">Neyman, J., &amp; Pearson, E. S. (1933). On the Problem of the Most Efficient Tests of Statistical Hypotheses. <i>Philosophical Transactions of the Royal Society A Mathematical, Physical and Engineering Sciences</i>, <i>231</i>, 289–337.</span></li>
+<li><span id="ohagan2011hsss">O’Hagan, A. (2001). <i>HSSS model criticism</i>. University of Sheffield, Department of Probability and Statistics.</span></li>
+<li><span id="robert2011short">Robert, C., &amp; Casella, G. (2011). A short history of Markov Chain Monte Carlo: subjective recollections from incomplete data. <i>Statistical Science</i>.</span></li>
+<li><span id="rubin1984bayesianly">Rubin, D. B. (1984). Bayesianly justifiable and relevant frequency calculations for the applied statistician. <i>The Annals of Statistics</i>, <i>12</i>(4), 1151–1172.</span></li>
+<li><span id="tukey1977exploratory">Tukey, J. W. (1977). Exploratory data analysis.</span></li>
+<li><span id="wasserman2006frequentist">Wasserman, L. (2006). Frequentist Bayes is objective (comment on articles by Berger and by Goldstein). <i>Bayesian Analysis</i>, <i>1</i>(3), 451–456.</span></li></ol>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>

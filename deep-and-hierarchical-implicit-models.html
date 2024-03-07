@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>Deep and Hierarchical Implicit Models | Dustin Tran</title>
+	<meta name="description" content="I’m excited to announce a paper that Rajesh Ranganath, Dave Blei, andI released today on arXiv, titledDeep and Hierarchical Implicit Models.">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/deep-and-hierarchical-implicit-models">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">Deep and Hierarchical Implicit Models</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="http://dustintran.com">Dustin Tran</a>
+        
+      </span>
+      <span class="date">Feb 28, 2017</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p>I’m excited to announce a paper that Rajesh Ranganath, Dave Blei, and
+I released today on arXiv, titled
+<a href="https://arxiv.org/abs/1702.08896">Deep and Hierarchical Implicit Models</a>.</p>
+
+<p>Implicit probabilistic models are all about sampling as a primitive:
+they define a process to simulate data and do not require tractable
+densities
+(<a class="citation" href="#diggle1984monte">Diggle &amp; Gratton (1984)</a>,
+<a class="citation" href="#hartig2011statistical">Hartig, Calabrese, Reineking, Wiegand, &amp; Huth (2011)</a>)
+. We leverage this fundamental idea to develop new classes of
+models: they encompass simulators in the scientific communities,
+generative adversarial networks
+<a class="citation" href="#goodfellow2014generative">(Goodfellow et al., 2014)</a>,
+and deep generative models such as sigmoid
+belief nets
+<a class="citation" href="#neal1990learning">(Neal, 1990)</a>
+and deep latent Gaussian models
+(<a class="citation" href="#rezende2014stochastic">Rezende, Mohamed, &amp; Wierstra (2014)</a>,
+<a class="citation" href="#kingma2014autoencoding">Kingma &amp; Welling (2014)</a>).
+These modeling developments could not really be done without
+inference, and we develop a variational inference algorithm that
+underpins them all.</p>
+
+<p>Biased as I am, I think this is quite a dense paper—chock full of
+simple ideas that are rife with deep implications. There are many
+nuggets of wisdom that I could ramble on about, and I just might in
+separate blog posts.</p>
+
+<p>As a practical example, we show how you can take any standard neural
+network and turn it into a deep implicit model: simply inject noise
+into the hidden layers. The hidden units in these layers are now
+interpreted as latent variables. Further, the induced latent variables
+are astonishingly flexible, going beyond Gaussians (or exponential
+families
+<a class="citation" href="#ranganath2015deep">(Ranganath, Tang, Charlin, &amp; Blei, 2015)</a>)
+to arbitrary probability distributions. Deep generative modeling could
+not be any simpler!</p>
+
+<p>Here’s a 2-layer deep implicit model in <a href="http://edwardlib.org">Edward</a>.
+It defines the generative process,</p>
+
+<script type="math/tex; mode=display">\begin{aligned}
+\mathbf{z}_{n,2} = g_2(\mathbf{\epsilon}_{n,2}),\qquad
+\mathbf{\epsilon}_{n, 2} \sim \text{Normal}(0, 1), \\
+\mathbf{z}_{n,1} = g_1(\mathbf{\epsilon}_{n,1}\mid\mathbf{z}_{n,2}),\qquad
+\mathbf{\epsilon}_{n, 1} \sim \text{Normal}(0, 1), \\
+\mathbf{x}_{n} = g_0(\mathbf{\epsilon}_{n,0}\mid\mathbf{z}_{n,1}),\qquad
+\mathbf{\epsilon}_{n, 0} \sim \text{Normal}(0, 1).
+\end{aligned}</script>
+
+<p>This generates layers of latent variables <script type="math/tex">\mathbf{z}_{n,1}</script>, <script type="math/tex">\mathbf{z}_{n,2}</script> and data <script type="math/tex">\mathbf{x}_{n}</script> via functions of noise <script type="math/tex">\mathbf{\epsilon}</script>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="n">tf</span>
+<span class="kn">from</span> <span class="nn">edward.models</span> <span class="kn">import</span> <span class="n">Normal</span>
+<span class="kn">from</span> <span class="nn">keras.layers</span> <span class="kn">import</span> <span class="n">Dense</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">55000</span>  <span class="c1"># number of data points
+</span><span class="n">d</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># noise dimensionality
+</span>
+<span class="c1"># random noise is Normal(0, 1)
+</span><span class="n">eps2</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]))</span>
+<span class="n">eps1</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]))</span>
+<span class="n">eps0</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">N</span><span class="p">,</span> <span class="n">d</span><span class="p">]))</span>
+
+<span class="c1"># alternate latent layers z with hidden layers h
+</span><span class="n">z2</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">)(</span><span class="n">eps2</span><span class="p">)</span>
+<span class="n">h2</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">)(</span><span class="n">z2</span><span class="p">)</span>
+<span class="n">z1</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">)(</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">eps1</span><span class="p">,</span> <span class="n">h2</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">h1</span> <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'relu'</span><span class="p">)(</span><span class="n">z1</span><span class="p">)</span>
+<span class="n">x</span>  <span class="o">=</span> <span class="n">Dense</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">None</span><span class="p">)(</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">eps0</span><span class="p">,</span> <span class="n">h1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+<p>The model uses Keras, where <code class="highlighter-rouge">Dense(256)(x)</code> denotes a fully connected
+layer with <script type="math/tex">256</script> hidden units applied to input <code class="highlighter-rouge">x</code>. To define a
+stochastic layer, we concatenate noise with the previous layer. The
+model alternates between stochastic and deterministic layers to
+generate data points <script type="math/tex">\mathbf{x}_n\in\mathbb{R}^{10}</script>.</p>
+
+<p>Check out the paper for how you can work with, or even interpret, such a model.</p>
+
+<p>EDIT (2017/03/02): The algorithm is now <a href="https://github.com/blei-lab/edward/pull/491">merged into Edward</a>.</p>
+
+<h2 id="references">References</h2>
+
+<ol class="bibliography"><li><span id="diggle1984monte">Diggle, P. J., &amp; Gratton, R. J. (1984). Monte Carlo methods of inference for implicit statistical models. <i>Journal of the Royal Statistical Society Series B</i>.</span></li>
+<li><span id="goodfellow2014generative">Goodfellow, I., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., … Bengio, Y. (2014). Generative Adversarial Nets. In <i>Neural Information Processing Systems</i>.</span></li>
+<li><span id="hartig2011statistical">Hartig, F., Calabrese, J. M., Reineking, B., Wiegand, T., &amp; Huth, A. (2011). Statistical inference for stochastic simulation models - theory and application. <i>Ecology Letters</i>, <i>14</i>(8), 816–827.</span></li>
+<li><span id="kingma2014autoencoding">Kingma, D. P., &amp; Welling, M. (2014). Auto-Encoding Variational Bayes. In <i>International Conference on Learning Representations</i>.</span></li>
+<li><span id="neal1990learning">Neal, R. M. (1990). <i>Learning Stochastic Feedforward Networks</i>.</span></li>
+<li><span id="ranganath2015deep">Ranganath, R., Tang, L., Charlin, L., &amp; Blei, D. M. (2015). Deep Exponential Families. In <i>Artificial Intelligence and Statistics</i>.</span></li>
+<li><span id="rezende2014stochastic">Rezende, D. J., Mohamed, S., &amp; Wierstra, D. (2014). Stochastic Backpropagation and Approximate Inference in Deep Generative Models. In <i>International Conference on Machine Learning</i>.</span></li></ol>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>

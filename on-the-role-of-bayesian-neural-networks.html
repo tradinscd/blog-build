@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+	<meta charset="utf-8">
+	<title>On the role of Bayesian neural networks | Dustin Tran</title>
+	<meta name="description" content="There’s a bit of recent discussion in Twitter about the role ofBayesian neural nets due to their weight pathologies.">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-Frame-Options" content="sameorigin">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="/blog/css/main.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="/blog/favicon.ico" type="image/x-icon">
+
+	<!-- Canonical -->
+	<link rel="canonical" href="http://dustintran.com/blog/on-the-role-of-bayesian-neural-networks">
+
+	<!-- RSS -->
+	<link rel="alternate" type="application/atom+xml" title="Dustin Tran" href="http://dustintran.com/blog/feed.xml" />
+
+	<!-- Font Awesome -->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+	
+
+	<!-- KaTeX -->
+	
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+	
+
+	<!-- Google Analytics -->
+	
+	<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-53150914-2', 'auto');
+	ga('send', 'pageview');
+	</script>
+	
+</head>
+
+  <body>
+    <header class="site-header">
+	<div class="branding">
+		
+		<a href="/blog/">
+			<img class="avatar" src="/blog/img/photo.png" alt=""/>
+		</a>
+		
+		<h1 class="site-title">
+			<a href="/blog/">Dustin Tran</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+                        <li>
+				<a class="page-link" href="http://dustintran.com">
+					about　
+				</a>
+			</li>
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<!-- Social icons from Font Awesome, if enabled -->
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+    <div class="content">
+      <article >
+  <header style="background-image: url('/blog/')">
+    <h1 class="title">On the role of Bayesian neural networks</h1>
+    <div style="padding-top:3%;"></div>
+    <div class="meta">
+      <span class="author">
+        By
+        
+          <a class="author-name" href="http://dustintran.com">Dustin Tran</a>
+        
+      </span>
+      <span class="date">Dec 27, 2019</span>
+      <ul>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://github.com/dustinvtran" title="Follow on GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	<a href="https://twitter.com/dustinvtran" title="Follow on Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+      </ul>
+    </div>
+  </header>
+  <section class="post-content"><p>There’s a bit of recent discussion in Twitter about the role of
+Bayesian neural nets due to their weight pathologies.</p>
+
+<p>There’s a lot of important points being said which I agree with about
+these questions having already been answered in the 90s like Jasper’s
+tweet and Neil Lawrence’s tweet.  Andrew Wilson also makes great
+points about marginalization.</p>
+
+<p>But there is value in the advances we’ve made since then that I think
+are worth highlighting, as they address challenges and modalities of
+thinking that we’ve similarly come about as modern deep learners
+rather than older neural network literature. The primary theme is
+computation.</p>
+
+<p>But I think there are also important points that haven’t really been
+discussed: computation and the implications of function
+priors/posteriors.</p>
+
+<h2 id="computation">Computation</h2>
+
+<p>I think this also underscores an important element of what distinguishes modern Bayesian neural nets from the 90s. Often what works in designing priors/posteriors revolves not only around their statistical behavior but also computation. 1/-</p>
+
+<p>Example 1: He-style weight priors encourage std normally distributed activations. It’s not clear why that’s interesting from the POV of the induced function distribution’s inputs/outputs. But it is clear from the POV of stochastic gradients and the information flow through the function.</p>
+
+<p>Example 2: Stabilizing priors (http://bayesiandeeplearning.org/2019/papers/23.pdf) further push on this intuition by working out the optimal weight prior parameters in order to maintain activation means/variances throughout training</p>
+
+<p>Example 3: You can also encourage well-behaved activations exactly, without assumptions, by considering distributions on rank-1 weight perturbations, which induce noise on the activations as in Flipout and BatchEnsemble ().</p>
+
+<p>Example 4: That intuition also holds for explicit activation noise methods like dropout and batch norm, which typically work better than naive BNNs because their induced randomness on gradients is much smaller than the full weight space, and is more controllable, typically via a tuned and fixed number (DropConnect, which adds noise on weights, also works and scales well precisely for this reason). Note activation distributions can also invalidate many GP intuitions as part of what makes them interesting is that the infinite width behavior is <em>not</em> a GP.</p>
+
+<p>There are also a lot of ideas that arise from training that are fundamental yet crucial.</p>
+
+<p>Ideas like KL annealing are crucial for maintaining the fine balance of stochasticity introduced by initialization, minibatch, and weights (in particular, randomness from initialization is increasingly more significant on larger data and bigger models; and minibatch variance is reduced over smaller step sizes; and the variance from the weights is depends on the steps to fit the data).</p>
+
+<p>Deep ensembles and cyclical MCMC () show a significant benefit in uncertainty comes from capturing multiple modes whereas the classic argument of weight symmetry would hypothesize they’re are functionally equivalent. In fact, each mode’s corresponding function has similar population-level behavior but disagree on a per-example basis (X, Y).</p>
+
+<p>TLDR: we should push on priors by thinking about their induced network behavior (see example works in ). But we should also better understanding trainability, controlling the stochasticity from the newly introduced noise in the network’s forward pass, as well in the interplay with the architecture.</p>
+
+<h2 id="implications-of-function-distributions">Implications of Function Distributions</h2>
+
+<p>Formally, Bayesian neural networks are neural networks with prior
+distributions on their weights and biases. I think this definition is
+overrated. Weight priors are easy way to induce a distribution over
+networks, but it’s clearly to the wrong inductive biases in research:
+like Bayesian statisticians, it makes one then consider the classic
+frequentist vs Bayesian debate about what it even means to
+distributions over parameters, as well as the practical questions of
+what distributions over parameters are even sensible. I think if we
+were to revisit this definition, examining what makes Bayesian neural
+nets interesting, it would be the idea of capturing distributions over
+neural networks—whether that be X (note, an idea similarly conveyed
+in Bayesian layers)—and the challenges of 1. statistically: what are
+the right priors/posteriors over networks; and 2. computationally: how
+do I devise them to scale properly and maintain signal throughout
+training.</p>
+
+<p>Finally, there’s an important point about function spaces, which is that considering distributions on weights is a very low-effort form of devising complex function priors. We should consider distributions over the entire architecture: width and depth of feedforward networks (), stochastic ResNet depth () which the imagenet SOTA (efficientnet) still uses, learning residual blocks like neural architecture search, automatic depth determination (), and a huge subfield of sparsity in deep networks which sparsify individual weight connections among many others.</p>
+
+<p>Example: output priors/posteriors X.</p>
+
+<p>resnet as boosting/ensemble of networks</p>
+
+<p>Flipout works well and can be interpreted as a hierarchical posterior (Gaussian-scale mixture with Bernoulli noise). But it’s not clear why that’s interesting until you look at the variance reduction. It’s the same distribution though!</p>
+</section>
+</article>
+
+<!-- Post navigation -->
+
+
+<!-- Disqus -->
+
+
+    </div>
+    
+<script src="/blog/js/katex_init.js"></script>
+
+
+
+<footer class="site-footer">
+	<p class="text">© 2016 ・ <a class="plain" href="http://dustintran.com">dustintran.com</a>
+</p>
+</footer>
+
+
+  </body>
+</html>
